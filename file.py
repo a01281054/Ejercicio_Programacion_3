@@ -18,9 +18,9 @@ class Hotel(ABC):
     '''This abstract class defines the hotel functionality.'''
 
     @abstractmethod
-    def create_hotel(self): pass
+    def create_hotel(self, new_data_file): pass
     @abstractmethod
-    def delete_hotel(self): pass
+    def delete_hotel(self, selected_id): pass
     @abstractmethod
     def display_hotel_info(self): pass
     @abstractmethod
@@ -59,51 +59,74 @@ class HotelSystem(Hotel, Reservation):
     It manages the hotel information and the reservation logic.
     '''
 
+    # Master file initialization containing all hotels data.
     def __init__(self, master_file="master_hotels.json"):
         self.master_file = master_file
 
-        # Initialize master file as an empty list if it doesn't exist
+        # Check if master file exists, if not create a new one.
         if not os.path.exists(self.master_file):
             with open(self.master_file, 'w') as f:
                 json.dump([], f)
 
-
-    # Hotel information.
     def create_hotel(self, new_data_file):
+        '''Function to create hotel data into master file.'''
+
         try:
-            # 1. Read the unique source JSON file
+            # Read new hotel data from provided json file.
             with open(new_data_file, 'r') as s_file:
                 new_hotels = json.load(s_file)
 
-            # Ensure we are dealing with a list
-            if not isinstance(new_hotels, list):
-                print(f"Error: {new_data_file} must contain a list of dictionaries.")
-                return
-
-            # 2. Read existing data from the master file
+            # Read existing hotel data from master file.
             with open(self.master_file, 'r') as m_file:
                 master_list = json.load(m_file)
 
-            # 3. Consolidate: Add the new list items to the master list
-            # We use extend() to combine lists of dictionaries
-            master_list.extend(new_hotels)
+            # Get all existing hotel IDs.
+            existing_ids = {h.get('hotel_id') for h in master_list}
+            added_count = 0 # New hotels count initialization.
 
-            # 4. Store: Save the updated list to the separate master file
+            # Check to see if hotel data from provided file is new by hotel ID.
+            for hotel in new_hotels:
+                if hotel.get('hotel_id') not in existing_ids:
+                    master_list.append(hotel)
+                    added_count += 1
+
+            # Write hotel data into json master file.
             with open(self.master_file, 'w') as m_file:
                 json.dump(master_list, m_file, indent=4)
 
-            print(f"Import Successful: {len(new_hotels)} hotels added to {self.master_file}.")
+            print(f"Import finished: {added_count} new hotels added to {self.master_file}.")
 
-
+        # Error handling if source file is not found.
         except FileNotFoundError:
             print(f"Error: Source file '{new_data_file}' not found.")
 
+        # Error handling if json file data is invalid.
         except json.JSONDecodeError:
             print(f"Error: '{new_data_file}' is not a valid JSON file.")
 
+    def delete_hotel(self, selected_id):
+        '''Function to delete hotels by hotel ID from master file.'''
 
+        # Read existing hotel data from json master file.
+        with open(self.master_file, 'r') as m_file:
+            master_list = json.load(m_file)
 
-    def delete_hotel(self): pass
+        # Initialization of length to keep track of hotel entries.
+        initial_count = len(master_list)
+        # Filter to keep all hotels except the hotel selected to be deleted.
+        updated_list = [h for h in master_list if str(h.get('hotel_id')) != str(selected_id)]
+
+        # Error handling by comparing hotel entries to check if a hotel has been deleted.
+        if len(updated_list) == initial_count:
+            print(f"Error: Hotel ID '{selected_id}' not found in {self.master_file}.")
+            return
+
+        # Store updated hotel data in json master file.
+        with open(self.master_file, 'w') as m_file:
+            json.dump(updated_list, m_file, indent=4)
+
+        print(f"Success: Hotel with ID '{selected_id}' has been deleted.")
+
     def display_hotel_info(self): pass
     def modify_hotel_info(self): pass
     def reserve_room(self): pass
@@ -123,8 +146,19 @@ class CustomerSystem(Customer):
 
 def main():
     system = HotelSystem()
+
+    command = sys.argv[1]
+    arg = sys.argv[2]
+
+    if command == "create":
+        system.create_hotel(arg)
+    elif command == "delete":
+        system.delete_hotel(arg)
+
+    '''
     tc = sys.argv[1] # Test case file with hotel data.
     system.create_hotel(tc)
+    '''
 
 if __name__ == '__main__':
     main()
