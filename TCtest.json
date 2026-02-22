@@ -1,0 +1,14 @@
+[
+  {
+    "hotel_id": 1,
+    "name": "Holiday Inn",
+    "location": "Monterrey",
+    "rooms": 100
+  },
+  {
+    "hotel_id": 2,
+    "name": "Marriot",
+    "location": "Dallas",
+    "rooms": 200
+  }
+]
