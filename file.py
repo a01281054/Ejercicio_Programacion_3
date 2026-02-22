@@ -24,7 +24,7 @@ class Hotel(ABC):
     @abstractmethod
     def display_hotel_info(self, hotel_id): pass
     @abstractmethod
-    def modify_hotel_info(self): pass
+    def modify_hotel_info(self, hotel_id, new_name, new_rooms): pass
     @abstractmethod
     def reserve_room(self): pass
     @abstractmethod
@@ -161,7 +161,44 @@ class HotelSystem(Hotel, Reservation):
 
         print(f"\nHotels displayed: {len(display_list)}.\n")
 
-    def modify_hotel_info(self): pass
+    def modify_hotel_info(self, hotel_id, new_name = None, new_rooms = None):
+        '''Function to modify hotel name and number of rooms in json master file.'''
+
+        try:
+            # Read existing hotels information from master file.
+            with open(self.master_file, 'r') as m_file:
+                master_list = json.load(m_file)
+
+            found = False
+            for hotel in master_list:
+                # Check/select the hotel to be modified by it hotel ID from master file.
+                if str(hotel.get('hotel_id')) == str(hotel_id):
+                    # Update hotel name.
+                    if new_name:
+                        hotel['name'] = new_name
+
+                    # Update number of rooms in hotel.
+                    if new_rooms is not None:
+                        hotel['rooms'] = int(new_rooms)
+                    found = True
+                    break
+
+            # Check to see if the hotel selected by its ID is valid.
+            if not found:
+                print(f"Error: Hotel ID '{hotel_id}' not found.")
+                return
+
+            # Store hotel info. changes.
+            with open(self.master_file, 'w') as m_file:
+                json.dump(master_list, m_file, indent=4)
+
+            print(f"Success: Hotel ID '{hotel_id}' information updated.")
+
+        # Error handling for invalid new rooms number.
+        except ValueError:
+            print("Error: The number of rooms must be a valid number.")
+
+
     def reserve_room(self): pass
 
     # Reservation system.
@@ -183,6 +220,7 @@ def main():
     command = sys.argv[1]
     arg = sys.argv[2]
 
+    # Checks command input to select hotel system feature.
     match command:
         case "create":
             #arg = sys.argv[2]
@@ -192,18 +230,25 @@ def main():
             system.delete_hotel(arg)
         case "display":
             system.display_hotel_info(arg)
+        case "modify":
+            # Checks command line whether only hotel name or rooms are to be modified.
+            if len(sys.argv) == 4:
+                h_id = sys.argv[2]
+                val = sys.argv[3]
 
-    '''
-    if command == "create":
-        system.create_hotel(arg)
-    elif command == "delete":
-        system.delete_hotel(arg)
-    '''
+                # Check if the value is a number (rooms) or string (name).
+                if val.isdigit():
+                    system.modify_hotel_info(h_id, new_rooms = val)
+                else:
+                    system.modify_hotel_info(h_id, new_name = val)
 
-    '''
-    tc = sys.argv[1] # Test case file with hotel data.
-    system.create_hotel(tc)
-    '''
+            # Checks command line if hotel name and rooms will be modified.
+            elif len(sys.argv) == 5:
+                system.modify_hotel_info(sys.argv[2], sys.argv[3], sys.argv[4])
+
+            # Error handling if no hotel ID was given or no value to be changed.
+            else:
+                print("Error: modify requires hotel ID and at least one value to change.")
 
 if __name__ == '__main__':
     main()
