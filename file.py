@@ -22,7 +22,7 @@ class Hotel(ABC):
     @abstractmethod
     def delete_hotel(self, selected_id): pass
     @abstractmethod
-    def display_hotel_info(self): pass
+    def display_hotel_info(self, hotel_id): pass
     @abstractmethod
     def modify_hotel_info(self): pass
     @abstractmethod
@@ -127,7 +127,40 @@ class HotelSystem(Hotel, Reservation):
 
         print(f"Success: Hotel with ID '{selected_id}' has been deleted.")
 
-    def display_hotel_info(self): pass
+    def display_hotel_info(self, hotel_id = "all"):
+        '''Function to display hotels info. from json master file.'''
+
+        # Read existing hotels information from master file.
+        with open(self.master_file, 'r') as m_file:
+            master_list = json.load(m_file)
+
+        # Check to see if there are not any registered hotels.
+        if not master_list:
+            print(f"\n The master file '{self.master_file}' does not have any registered hotels.")
+            return
+
+        # Determine which hotels to show based on hotel ID or if all are requested.
+        if str(hotel_id).lower() == "all":
+            display_list = master_list
+        else:
+            # Filter by the specific hotel ID and store info. in display list.
+            display_list = [h for h in master_list if str(h.get('hotel_id')) == str(hotel_id)]
+
+        # Check if the requested hotel ID exists.
+        if not display_list:
+            print(f"Error: No hotel found with ID '{hotel_id}'.")
+            return
+
+        # Get the hotel information from the list to be displayed and print.
+        for hotel in display_list:
+            h_id = hotel.get('hotel_id', 'N/A')
+            name = hotel.get('name', 'N/A')
+            loc = hotel.get('location', 'N/A')
+            rooms = hotel.get('rooms', 0)
+            print(f"Hotel ID: {h_id:<5} | Name: {name:<20} | Location: {loc:<20} | Total rooms: {rooms}")
+
+        print(f"\nHotels displayed: {len(display_list)}.\n")
+
     def modify_hotel_info(self): pass
     def reserve_room(self): pass
 
@@ -150,10 +183,22 @@ def main():
     command = sys.argv[1]
     arg = sys.argv[2]
 
+    match command:
+        case "create":
+            #arg = sys.argv[2]
+            system.create_hotel(arg)
+        case "delete":
+            #arg = sys.argv[2]
+            system.delete_hotel(arg)
+        case "display":
+            system.display_hotel_info(arg)
+
+    '''
     if command == "create":
         system.create_hotel(arg)
     elif command == "delete":
         system.delete_hotel(arg)
+    '''
 
     '''
     tc = sys.argv[1] # Test case file with hotel data.
