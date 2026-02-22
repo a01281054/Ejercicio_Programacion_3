@@ -8,7 +8,10 @@ delete it.
 
 from abc import ABC, abstractmethod
 import json
+import sys
 import os
+
+from colorama.ansi import clear_screen
 
 
 class Hotel(ABC):
@@ -58,12 +61,12 @@ class HotelSystem(Hotel, Reservation):
 
     def __init__(self, master_file="master_hotels.json"):
         self.master_file = master_file
-        '''
+
         # Initialize master file as an empty list if it doesn't exist
         if not os.path.exists(self.master_file):
             with open(self.master_file, 'w') as f:
                 json.dump([], f)
-        '''
+
 
     # Hotel information.
     def create_hotel(self, new_data_file):
@@ -91,12 +94,13 @@ class HotelSystem(Hotel, Reservation):
 
             print(f"Import Successful: {len(new_hotels)} hotels added to {self.master_file}.")
 
-        '''
+
         except FileNotFoundError:
-            print(f"Error: Source file '{source_json_path}' not found.")
-        '''
+            print(f"Error: Source file '{new_data_file}' not found.")
+
         except json.JSONDecodeError:
             print(f"Error: '{new_data_file}' is not a valid JSON file.")
+
 
 
     def delete_hotel(self): pass
@@ -115,6 +119,15 @@ class CustomerSystem(Customer):
     def delete_customer(self): pass
     def display_cust_info(self): pass
     def modify_cust_info(self): pass
+
+
+def main():
+    system = HotelSystem()
+    tc = sys.argv[1] # Test case file with hotel data.
+    system.create_hotel(tc)
+
+if __name__ == '__main__':
+    main()
 
 
 
