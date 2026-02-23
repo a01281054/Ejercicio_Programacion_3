@@ -28,7 +28,7 @@ class Hotel(ABC):
     @abstractmethod
     def reserve_room(self, hotel_id): pass
     @abstractmethod
-    def cancel_reservation(self): pass
+    def cancel_reservation(self, reservation_id, res_file="master_reservations.json"): pass
 
 
 class Customer(ABC):
@@ -48,9 +48,10 @@ class Reservation(ABC):
     '''This abstract class defines the reservation functionality.'''
 
     @abstractmethod
-    def create_reservation(self): pass
+    def create_reservation(self, customer_id, hotel_id, customer_file="master_customers.json",
+                           res_file="master_reservations.json"): pass
     @abstractmethod
-    def cancel_reservation(self): pass
+    def cancel_reservation(self, reservation_id, res_file="master_reservations.json"): pass
 
 
 class HotelSystem(Hotel, Reservation):
@@ -234,8 +235,95 @@ class HotelSystem(Hotel, Reservation):
             json.dump(master_list, m_file, indent=4)
 
     # Reservation system.
-    def create_reservation(self): pass
-    def cancel_reservation(self): pass
+    def create_reservation(self, customer_id, hotel_id, customer_file = "master_customers.json",
+                           res_file = "master_reservations.json"):
+        '''Function to create a reservation.'''
+
+        # Validate the Customer exists in their own database
+        with open(customer_file, 'r') as cf:
+            customers = json.load(cf)
+        if not any(str(c.get('customer_id')) == str(customer_id) for c in customers):
+            print(f"Error: Customer ID '{customer_id}' not found in {customer_file}.")
+            return
+
+        # Validate Hotel exists and has rooms
+        with open(self.master_file, 'r') as hf:
+            hotels = json.load(hf)
+
+        target_hotel = next((h for h in hotels if str(h.get('hotel_id')) == str(hotel_id)), None)
+
+        if not target_hotel:
+            print(f"Error: Hotel ID '{hotel_id}' not found.\n")
+            return
+
+        if target_hotel.get('available_rooms', 0) <= 0:
+            print(f"Error: No rooms available at {target_hotel['name']}.\n")
+            return
+
+        # Perform the physical reservation in the hotel database.
+        self.reserve_room(hotel_id)
+
+        # Create the link in the reservations database
+        if not os.path.exists(res_file):
+            with open(res_file, 'w') as f: json.dump([], f)
+
+        with open(res_file, 'r') as rf:
+            reservations = json.load(rf)
+
+        new_res = {
+            "reservation_id": len(reservations) + 1,
+            "customer_id": customer_id,
+            "hotel_id": hotel_id,
+            "hotel_name": target_hotel['name']
+        }
+        reservations.append(new_res)
+
+        with open(res_file, 'w') as rf:
+            json.dump(reservations, rf, indent=4)
+
+        print(f"Success: Reservation #{new_res['reservation_id']} created for Customer {customer_id}.\n")
+
+
+    def cancel_reservation(self, reservation_id, res_file="master_reservations.json"):
+        '''Function to cancel a reservation and return the room to the hotel inventory.'''
+
+        # Check existing reservations.
+        if not os.path.exists(res_file):
+            print(f"Error: No reservations found in {res_file}.\n")
+            return
+
+        with open(res_file, 'r') as rf:
+            reservations = json.load(rf)
+
+        # Find the reservation to get the hotel_id.
+        res_to_cancel = next((r for r in reservations if str(r.get('reservation_id')) == str(reservation_id)), None)
+
+        if not res_to_cancel:
+            print(f"Error: Reservation ID '{reservation_id}' not found.\n")
+            return
+
+        hotel_id = res_to_cancel.get('hotel_id')
+
+        # Update Hotel Inventory (increment available_rooms).
+        with open(self.master_file, 'r') as hf:
+            hotels = json.load(hf)
+
+        for hotel in hotels:
+            if str(hotel.get('hotel_id')) == str(hotel_id):
+                hotel['available_rooms'] = hotel.get('available_rooms', 0) + 1
+                break
+
+        # Remove the selected reservation from the list
+        updated_reservations = [r for r in reservations if str(r.get('reservation_id')) != str(reservation_id)]
+
+        # Save hotel master file and reservations master file.
+        with open(self.master_file, 'w') as hf:
+            json.dump(hotels, hf, indent=4)
+
+        with open(res_file, 'w') as rf:
+            json.dump(updated_reservations, rf, indent=4)
+
+        print(f"Success: Reservation {reservation_id} cancelled. Room returned to inventory.\n")
 
 
 class CustomerSystem(Customer):
@@ -403,49 +491,31 @@ def main():
 
     command = sys.argv[1]
     hot_cust = sys.argv[2]
-    arg = sys.argv[3]
 
     # Checks command input to select hotel system feature.
     match command:
         case "create":
+            arg = sys.argv[3]
             if hot_cust == "hotel":
                 system_hotel.create_hotel(arg)
             elif hot_cust == "customer":
                 system_customer.create_customer(arg)
 
         case "delete":
+            arg = sys.argv[3]
             if hot_cust == "hotel":
                 system_hotel.delete_hotel(arg)
             elif hot_cust == "customer":
                 system_customer.delete_customer(arg)
 
         case "display":
+            arg = sys.argv[3]
             if hot_cust == "hotel":
                 system_hotel.display_hotel_info(arg)
             elif hot_cust == "customer":
                 system_customer.display_cust_info(arg)
 
         case "modify":
-            '''
-            # Checks command line whether only hotel name or rooms are to be modified.
-            if len(sys.argv) == 5:
-                h_id = sys.argv[3]
-                val = sys.argv[4]
-
-                # Check if the value is a number (rooms) or string (name).
-                if val.isdigit():
-                    system_hotel.modify_hotel_info(h_id, new_rooms = val)
-                else:
-                    system_hotel.modify_hotel_info(h_id, new_name = val)
-
-            # Checks command line if hotel name and rooms will be modified.
-            elif len(sys.argv) == 6:
-                system_hotel.modify_hotel_info(sys.argv[3], sys.argv[4], sys.argv[5])
-
-            # Error handling if no hotel ID was given or no value to be changed.
-            else:
-                print("Error: modify requires hotel ID and at least one value to change.\n")
-        '''
             if hot_cust == "hotel":
                 # ... your existing hotel modify logic ...
                 if len(sys.argv) == 5:
@@ -473,7 +543,19 @@ def main():
                     print("Error: modify customer requires ID and at least one value.")
 
         case "reserve":
+            arg = sys.argv[3]
             system_hotel.reserve_room(arg)
+
+        case "book":
+            if len(sys.argv) == 4:
+                c_id = sys.argv[2]
+                h_id = sys.argv[3]
+                system_hotel.create_reservation(c_id, h_id)
+            else:
+                print("Error: book requires Customer ID and Hotel ID.\n")
+
+        case "cancel":
+            system_hotel.cancel_reservation(sys.argv[2])
 
 if __name__ == '__main__':
     main()
