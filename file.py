@@ -11,47 +11,72 @@ import json
 import sys
 import os
 
-from colorama.ansi import clear_screen
-
 
 class Hotel(ABC):
     '''This abstract class defines the hotel functionality.'''
 
     @abstractmethod
-    def create_hotel(self, new_data_file): pass
+    def create_hotel(self, new_data_file):
+        '''Abstract method to create a hotel entry from a JSON file.'''
+
     @abstractmethod
-    def delete_hotel(self, selected_id): pass
+    def delete_hotel(self, selected_id):
+        '''Abstract method to delete a hotel by its unique ID.'''
+
     @abstractmethod
-    def display_hotel_info(self, hotel_id): pass
+    def display_hotel_info(self, hotel_id):
+        '''Abstract method to display hotel info. by its unique ID.'''
+
     @abstractmethod
-    def modify_hotel_info(self, hotel_id, new_name = None, new_rooms = None): pass
+    def modify_hotel_info(self, hotel_id, new_name = None, new_rooms = None):
+        '''Abstract method to modify hotel info. by its unique ID.'''
+
     @abstractmethod
-    def reserve_room(self, hotel_id): pass
+    def reserve_room(self, hotel_id):
+        '''Abstract method to reserve a hotel by decreasing available rooms
+         by its unique ID.'''
+
     @abstractmethod
-    def cancel_reservation(self, reservation_id, res_file="master_reservations.json"): pass
+    def cancel_reservation(self, reservation_id,
+                           res_file="master_reservations.json"):
+        '''Abstract method to cancel hotel reservations by unique ID.'''
 
 
 class Customer(ABC):
     '''This abstract class defines the customer functionality.'''
 
     @abstractmethod
-    def create_customer(self, new_data_file): pass
+    def create_customer(self, new_data_file):
+        '''Abstract method to create customer into customers master file.'''
+
     @abstractmethod
-    def delete_customer(self, selected_id): pass
+    def delete_customer(self, selected_id):
+        '''Abstract method to delete customer from customers master file.'''
+
     @abstractmethod
-    def display_cust_info(self, customer_id): pass
+    def display_cust_info(self, customer_id):
+        '''Abstract method to display customer info. from
+        customers master file.'''
+
     @abstractmethod
-    def modify_cust_info(self, customer_id, new_name = None, new_email = None): pass
+    def modify_cust_info(self, customer_id,
+                         new_name = None, new_email = None):
+        '''Abstract method to modify customer info. of customers master file.'''
 
 
 class Reservation(ABC):
     '''This abstract class defines the reservation functionality.'''
 
     @abstractmethod
-    def create_reservation(self, customer_id, hotel_id, customer_file="master_customers.json",
-                           res_file="master_reservations.json"): pass
+    def create_reservation(self, customer_id, hotel_id,
+                           customer_file="master_customers.json",
+                           res_file="master_reservations.json"):
+        '''Abstract method to create reservations using customers
+        and hotel info. into a JSON master.'''
+
     @abstractmethod
-    def cancel_reservation(self, reservation_id, res_file="master_reservations.json"): pass
+    def cancel_reservation(self, reservation_id, res_file="master_reservations.json"):
+        '''Abstract method to cancel reservations by unique ID.'''
 
 
 class HotelSystem(Hotel, Reservation):
@@ -66,7 +91,7 @@ class HotelSystem(Hotel, Reservation):
 
         # Check if master file exists, if not create a new one.
         if not os.path.exists(self.master_file):
-            with open(self.master_file, 'w') as f:
+            with open(self.master_file, 'w', encoding="utf-8") as f:
                 json.dump([], f)
 
     def create_hotel(self, new_data_file):
@@ -74,11 +99,11 @@ class HotelSystem(Hotel, Reservation):
 
         try:
             # Read new hotel data from provided json file.
-            with open(new_data_file, 'r') as s_file:
+            with open(new_data_file, 'r', encoding="utf-8") as s_file:
                 new_hotels = json.load(s_file)
 
             # Read existing hotel data from master file.
-            with open(self.master_file, 'r') as m_file:
+            with open(self.master_file, 'r', encoding="utf-8") as m_file:
                 master_list = json.load(m_file)
 
             # Get all existing hotel IDs.
@@ -92,7 +117,7 @@ class HotelSystem(Hotel, Reservation):
                     added_count += 1
 
             # Write hotel data into json master file.
-            with open(self.master_file, 'w') as m_file:
+            with open(self.master_file, 'w', encoding="utf-8") as m_file:
                 json.dump(master_list, m_file, indent=4)
 
             print(f"Import finished: {added_count} new hotels added to {self.master_file}.\n")
@@ -109,7 +134,7 @@ class HotelSystem(Hotel, Reservation):
         '''Function to delete hotels by hotel ID from master file.'''
 
         # Read existing hotel data from json master file.
-        with open(self.master_file, 'r') as m_file:
+        with open(self.master_file, 'r', encoding="utf-8") as m_file:
             master_list = json.load(m_file)
 
         # Initialization of length to keep track of hotel entries.
@@ -123,7 +148,7 @@ class HotelSystem(Hotel, Reservation):
             return
 
         # Store updated hotel data in json master file.
-        with open(self.master_file, 'w') as m_file:
+        with open(self.master_file, 'w', encoding="utf-8") as m_file:
             json.dump(updated_list, m_file, indent=4)
 
         print(f"Success: Hotel with ID '{selected_id}' has been deleted.\n")
@@ -132,7 +157,7 @@ class HotelSystem(Hotel, Reservation):
         '''Function to display hotels info. from json master file.'''
 
         # Read existing hotels information from master file.
-        with open(self.master_file, 'r') as m_file:
+        with open(self.master_file, 'r', encoding="utf-8") as m_file:
             master_list = json.load(m_file)
 
         # Check to see if there are not any registered hotels.
@@ -169,7 +194,7 @@ class HotelSystem(Hotel, Reservation):
 
         try:
             # Read existing hotels information from master file.
-            with open(self.master_file, 'r') as m_file:
+            with open(self.master_file, 'r', encoding="utf-8") as m_file:
                 master_list = json.load(m_file)
 
             found = False
@@ -192,7 +217,7 @@ class HotelSystem(Hotel, Reservation):
                 return
 
             # Store hotel info. changes.
-            with open(self.master_file, 'w') as m_file:
+            with open(self.master_file, 'w', encoding="utf-8") as m_file:
                 json.dump(master_list, m_file, indent=4)
 
             print(f"Success: Hotel ID '{hotel_id}' information updated.\n")
@@ -205,7 +230,7 @@ class HotelSystem(Hotel, Reservation):
         '''Function to reserve a room in a hotel by decrementing the count in json master file.'''
 
         # Read existing hotels information from master file.
-        with open(self.master_file, 'r') as m_file:
+        with open(self.master_file, 'r', encoding="utf-8") as m_file:
             master_list = json.load(m_file)
 
         found = False
@@ -218,7 +243,8 @@ class HotelSystem(Hotel, Reservation):
                 if current_rooms > 0:
                     hotel['available_rooms'] = current_rooms - 1
                     found = True
-                    print(f"Success: Room reserved at {hotel['name']}. Remaining rooms: {hotel['available_rooms']}.\n")
+                    print(f"Success: Room reserved at {hotel['name']}. "
+                          f"Remaining rooms: {hotel['available_rooms']}.\n")
 
                 # Error handling, display message when there are not any available rooms
                 else:
@@ -231,7 +257,7 @@ class HotelSystem(Hotel, Reservation):
             return
 
         # Write back information to master file
-        with open(self.master_file, 'w') as m_file:
+        with open(self.master_file, 'w', encoding="utf-8") as m_file:
             json.dump(master_list, m_file, indent=4)
 
     # Reservation system.
@@ -240,14 +266,14 @@ class HotelSystem(Hotel, Reservation):
         '''Function to create a reservation.'''
 
         # Validate the Customer exists in their own database
-        with open(customer_file, 'r') as cf:
+        with open(customer_file, 'r', encoding="utf-8") as cf:
             customers = json.load(cf)
         if not any(str(c.get('customer_id')) == str(customer_id) for c in customers):
             print(f"Error: Customer ID '{customer_id}' not found in {customer_file}.")
             return
 
         # Validate Hotel exists and has rooms
-        with open(self.master_file, 'r') as hf:
+        with open(self.master_file, 'r', encoding="utf-8") as hf:
             hotels = json.load(hf)
 
         target_hotel = next((h for h in hotels if str(h.get('hotel_id')) == str(hotel_id)), None)
@@ -265,9 +291,10 @@ class HotelSystem(Hotel, Reservation):
 
         # Create the link in the reservations database
         if not os.path.exists(res_file):
-            with open(res_file, 'w') as f: json.dump([], f)
+            with open(res_file, 'w', encoding="utf-8") as f:
+                json.dump([], f)
 
-        with open(res_file, 'r') as rf:
+        with open(res_file, 'r', encoding="utf-8") as rf:
             reservations = json.load(rf)
 
         new_res = {
@@ -278,10 +305,11 @@ class HotelSystem(Hotel, Reservation):
         }
         reservations.append(new_res)
 
-        with open(res_file, 'w') as rf:
+        with open(res_file, 'w', encoding="utf-8") as rf:
             json.dump(reservations, rf, indent=4)
 
-        print(f"Success: Reservation #{new_res['reservation_id']} created for Customer {customer_id}.\n")
+        print(f"Success: Reservation #{new_res['reservation_id']} "
+              f"created for Customer {customer_id}.\n")
 
 
     def cancel_reservation(self, reservation_id, res_file="master_reservations.json"):
@@ -292,11 +320,12 @@ class HotelSystem(Hotel, Reservation):
             print(f"Error: No reservations found in {res_file}.\n")
             return
 
-        with open(res_file, 'r') as rf:
+        with open(res_file, 'r', encoding="utf-8") as rf:
             reservations = json.load(rf)
 
         # Find the reservation to get the hotel_id.
-        res_to_cancel = next((r for r in reservations if str(r.get('reservation_id')) == str(reservation_id)), None)
+        res_to_cancel = next((r for r in reservations
+                              if str(r.get('reservation_id')) == str(reservation_id)), None)
 
         if not res_to_cancel:
             print(f"Error: Reservation ID '{reservation_id}' not found.\n")
@@ -305,7 +334,7 @@ class HotelSystem(Hotel, Reservation):
         hotel_id = res_to_cancel.get('hotel_id')
 
         # Update Hotel Inventory (increment available_rooms).
-        with open(self.master_file, 'r') as hf:
+        with open(self.master_file, 'r', encoding="utf-8") as hf:
             hotels = json.load(hf)
 
         for hotel in hotels:
@@ -314,13 +343,14 @@ class HotelSystem(Hotel, Reservation):
                 break
 
         # Remove the selected reservation from the list
-        updated_reservations = [r for r in reservations if str(r.get('reservation_id')) != str(reservation_id)]
+        updated_reservations = [r for r in reservations
+                                if str(r.get('reservation_id')) != str(reservation_id)]
 
         # Save hotel master file and reservations master file.
-        with open(self.master_file, 'w') as hf:
+        with open(self.master_file, 'w', encoding="utf-8") as hf:
             json.dump(hotels, hf, indent=4)
 
-        with open(res_file, 'w') as rf:
+        with open(res_file, 'w', encoding="utf-8") as rf:
             json.dump(updated_reservations, rf, indent=4)
 
         print(f"Success: Reservation {reservation_id} cancelled. Room returned to inventory.\n")
@@ -334,20 +364,13 @@ class CustomerSystem(Customer):
     file: customer_id, name, age, email.
     '''
 
-    '''
-    def create_customer(self): pass
-    def delete_customer(self): pass
-    def display_cust_info(self): pass
-    def modify_cust_info(self): pass
-    '''
-
     # Master file initialization containing all hotels data.
     def __init__(self, master_file="master_customers.json"):
         self.master_file = master_file
 
         # Check if master file exists, if not create a new one.
         if not os.path.exists(self.master_file):
-            with open(self.master_file, 'w') as f:
+            with open(self.master_file, 'w', encoding="utf-8") as f:
                 json.dump([], f)
 
     def create_customer(self, new_data_file):
@@ -355,11 +378,11 @@ class CustomerSystem(Customer):
 
         try:
             # Read new customer data from provided json file.
-            with open(new_data_file, 'r') as s_file:
+            with open(new_data_file, 'r', encoding="utf-8") as s_file:
                 new_customers = json.load(s_file)
 
             # Read existing customer data from master file.
-            with open(self.master_file, 'r') as m_file:
+            with open(self.master_file, 'r', encoding="utf-8") as m_file:
                 master_list = json.load(m_file)
 
             # Get all existing customer IDs.
@@ -373,7 +396,7 @@ class CustomerSystem(Customer):
                     added_count += 1
 
             # Write customer data into json master file.
-            with open(self.master_file, 'w') as m_file:
+            with open(self.master_file, 'w', encoding="utf-8") as m_file:
                 json.dump(master_list, m_file, indent=4)
 
             print(f"Import finished: {added_count} new customers added to {self.master_file}.\n")
@@ -391,7 +414,7 @@ class CustomerSystem(Customer):
         '''Function to delete customers by customer ID from master file.'''
 
         # Read existing customer data from json master file.
-        with open(self.master_file, 'r') as m_file:
+        with open(self.master_file, 'r', encoding="utf-8") as m_file:
             master_list = json.load(m_file)
 
         # Initialization of length to keep track of customer entries.
@@ -405,7 +428,7 @@ class CustomerSystem(Customer):
             return
 
         # Store updated customer data in json master file.
-        with open(self.master_file, 'w') as m_file:
+        with open(self.master_file, 'w', encoding="utf-8") as m_file:
             json.dump(updated_list, m_file, indent=4)
 
         print(f"Success: Customer with ID '{selected_id}' has been deleted.\n")
@@ -414,12 +437,13 @@ class CustomerSystem(Customer):
         '''Function to display customers info. from json master file.'''
 
         # Read existing customers information from master file.
-        with open(self.master_file, 'r') as m_file:
+        with open(self.master_file, 'r', encoding="utf-8") as m_file:
             master_list = json.load(m_file)
 
         # Check to see if there are not any registered customers.
         if not master_list:
-            print(f"\n The master file '{self.master_file}' does not have any registered customers.\n")
+            print(f"\n The master file '{self.master_file}' "
+                  f"does not have any registered customers.\n")
             return
 
         # Determine which customers to show based on customer ID or if all are requested.
@@ -450,7 +474,7 @@ class CustomerSystem(Customer):
 
         try:
             # Read existing customers information from master file.
-            with open(self.master_file, 'r') as m_file:
+            with open(self.master_file, 'r', encoding="utf-8") as m_file:
                 master_list = json.load(m_file)
 
             found = False
@@ -473,7 +497,7 @@ class CustomerSystem(Customer):
                 return
 
             # Store customer info. changes.
-            with open(self.master_file, 'w') as m_file:
+            with open(self.master_file, 'w', encoding="utf-8") as m_file:
                 json.dump(master_list, m_file, indent=4)
 
             print(f"Success: Customer ID '{customer_id}' information updated.\n")
@@ -486,6 +510,7 @@ class CustomerSystem(Customer):
 
 
 def main():
+    '''Main function.'''
     system_hotel = HotelSystem()
     system_customer = CustomerSystem()
 
@@ -559,10 +584,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-
-
-
-
-
