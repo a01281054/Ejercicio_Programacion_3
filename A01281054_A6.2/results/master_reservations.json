@@ -1,0 +1,14 @@
+[
+    {
+        "reservation_id": 4,
+        "customer_id": "3",
+        "hotel_id": "2",
+        "hotel_name": "Marriot"
+    },
+    {
+        "reservation_id": 2,
+        "customer_id": "1",
+        "hotel_id": "1",
+        "hotel_name": "Holiday Inn"
+    }
+]

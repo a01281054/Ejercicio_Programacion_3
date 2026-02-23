@@ -1,0 +1,16 @@
+[
+    {
+        "hotel_id": 1,
+        "name": "Express Inn",
+        "location": "Monterrey",
+        "rooms": 150,
+        "available_rooms": 99
+    },
+    {
+        "hotel_id": 3,
+        "name": "Hilton",
+        "location": "Los Angeles",
+        "rooms": 150,
+        "available_rooms": 150
+    }
+]

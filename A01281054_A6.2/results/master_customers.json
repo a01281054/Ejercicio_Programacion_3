@@ -1,0 +1,14 @@
+[
+    {
+        "customer_id": 1,
+        "name": "Juan Jose Perez Lopez",
+        "age": 40,
+        "email": "jjpl@gmail.com"
+    },
+    {
+        "customer_id": 2,
+        "name": "Daniel Juarez",
+        "age": 36,
+        "email": "daniel.d@gmail.com"
+    }
+]

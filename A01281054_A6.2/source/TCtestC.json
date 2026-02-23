@@ -1,0 +1,20 @@
+[
+    {
+        "customer_id": 1,
+        "name": "Juan Perez",
+        "age": 40,
+        "email": "juan.p@gmail.com"
+    },
+    {
+        "customer_id": 2,
+        "name": "Ana Lopez",
+        "age": 36,
+        "email": "ana.l@gmail.com"
+    },
+    {
+        "customer_id": 3,
+        "name": "Milton Cruz",
+        "age": 52,
+        "email": "milton.c@gmail.com"
+    }
+]
